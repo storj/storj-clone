@@ -206,14 +206,20 @@ cache_remote_push() {
 cache_remote_branch() {
     if [ "z$REMOTE_BRANCH" != "z" ]; then return; fi
     login caching REMOTE_BRANCH...
+    
+    cache_remote_name
 
     LOCAL_REF=$(git symbolic-ref HEAD)
     LOCAL_NAME=${LOCAL_REF##refs/heads/}
     REMOTE_REF=$(git config "branch.${LOCAL_NAME}.merge")
+    REMOTE_REMOTE=$(git config "branch.${LOCAL_NAME}.remote")
     REMOTE_BRANCH=${REMOTE_REF##refs/heads/}
 
     if [ "z$REMOTE_BRANCH" == "z" ]; then
         log using default remote branch...
+        REMOTE_BRANCH=$DEFAULT_REMOTE_BRANCH
+    elif [ "$REMOTE_NAME" != "$REMOTE_REMOTE" ]; then
+        log using default branch because REMOTE_NAME="$REMOTE_NAME" and the branch remote is "$REMOTE_REMOTE"...
         REMOTE_BRANCH=$DEFAULT_REMOTE_BRANCH
     else
         log using remote tracking branch of "$LOCAL_NAME"...
