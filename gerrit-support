@@ -143,6 +143,7 @@ cache_repo() {
     if [ "z$REPO" != "z" ]; then return; fi
     login caching REPO...
 
+    log using directory name of git repository...
     REPO=$(basename "$(git rev-parse --show-toplevel)")
 
     logout REPO="$REPO"
@@ -167,13 +168,10 @@ cache_remote_name() {
 
     # nope, we didn't find it. just use gerrit for good error messages.
     if [ "z$REMOTE_NAME" == "z" ]; then
-        log using default remote name...
+        log no remote with ADDRESS="$ADDRESS". using default remote name...
         REMOTE_NAME=$DEFAULT_REMOTE_NAME
     else
-        # invalidate the raw push url. address and hostname are right because
-        # we found them in the remote list.
         log found based on ADDRESS="$ADDRESS"...
-        RAW_PUSH=
     fi
 
     logout REMOTE_NAME="$REMOTE_NAME"
@@ -188,7 +186,10 @@ cache_remote_push() {
     REMOTE_PUSH=$(git remote get-url --push "$REMOTE_NAME" 2>/dev/null || true)
 
     if [ "z$REMOTE_PUSH" == "z" ]; then
-        log REMOTE_NAME="$REMOTE_NAME" not found. using calculated REMOTE_PUSH="$REMOTE_PUSH"...
+        log could not find remote with REMOTE_NAME="$REMOTE_NAME"...
+
+        # invalidate RAW_PUSH because it can contain assumptions from cache_remote_name
+        RAW_PUSH=
 
         cache_username
         cache_address
@@ -197,7 +198,7 @@ cache_remote_push() {
 
         REMOTE_PUSH="ssh://$USERNAME@$ADDRESS/$PROJECT/$REPO"
     else
-        log using address from REMOTE_NAME="$REMOTE_NAME"...
+        log using push url from REMOTE_NAME="$REMOTE_NAME"...
     fi
 
     logout REMOTE_PUSH="$REMOTE_PUSH"
@@ -206,7 +207,7 @@ cache_remote_push() {
 cache_remote_branch() {
     if [ "z$REMOTE_BRANCH" != "z" ]; then return; fi
     login caching REMOTE_BRANCH...
-    
+
     cache_remote_name
 
     LOCAL_REF=$(git symbolic-ref HEAD)
@@ -219,7 +220,7 @@ cache_remote_branch() {
         log using default remote branch...
         REMOTE_BRANCH=$DEFAULT_REMOTE_BRANCH
     elif [ "$REMOTE_NAME" != "$REMOTE_REMOTE" ]; then
-        log using default branch because REMOTE_NAME="$REMOTE_NAME" and the branch remote is "$REMOTE_REMOTE"...
+        log using default branch because REMOTE_NAME="$REMOTE_NAME" but the branch remote is "$REMOTE_REMOTE"...
         REMOTE_BRANCH=$DEFAULT_REMOTE_BRANCH
     else
         log using remote tracking branch of "$LOCAL_NAME"...
