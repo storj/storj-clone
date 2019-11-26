@@ -1,0 +1,235 @@
+set -euo pipefail
+
+DEPTH=
+
+login() {
+    log "$@"
+    DEPTH="$DEPTH    "
+}
+
+logout() {
+    DEPTH=${DEPTH%????}
+    log "$@"
+}
+
+log() {
+    if [ -z "${TEST:-""}" ]; then return; fi
+    >&2 echo "--- $DEPTH$*"
+}
+
+run() {
+    if [ -z "${TEST:-""}" ]; then "$@"; return; fi
+    >&2 echo "$@"
+}
+
+DEFAULT_HOSTNAME=review.dev.storj.io
+DEFAULT_PORT=29418
+DEFAULT_PROJECT=storj
+DEFAULT_REMOTE_NAME=gerrit
+DEFAULT_REMOTE_BRANCH=master
+
+USERNAME=
+HOSTNAME=
+ADDRESS=
+PROJECT=
+REPO=
+REMOTE_NAME=
+REMOTE_PUSH=
+RAW_PUSH=
+REMOTE_BRANCH=
+REVIEWERS=
+
+cache_raw_push() {
+    if [ "z$RAW_PUSH" != "z" ]; then return; fi
+    login caching RAW_PUSH...
+
+    cache_remote_name
+
+    RAW_PUSH=$(git remote get-url --push $REMOTE_NAME 2>/dev/null || true)
+    if [ "z$RAW_PUSH" == "z" ]; then
+        log remote for REMOTE_NAME="$REMOTE_NAME" not found...
+        RAW_PUSH=INVALID
+    else
+        log remote for REMOTE_NAME="$REMOTE_NAME" found...
+    fi
+
+    logout RAW_PUSH="$RAW_PUSH"
+}
+
+cache_username() {
+    if [ "z$USERNAME" != "z" ]; then return; fi
+    login caching USERNAME...
+
+    USERNAME=$(git config --get user.gerrit-username || true)
+
+    if [ "z$USERNAME" == "z" ]; then
+        log using whoami...
+        USERNAME=$(whoami)
+    else
+        log using username from git config...
+    fi
+
+    logout USERNAME="$USERNAME"
+}
+
+cache_hostname() {
+    if [ "z$HOSTNAME" != "z" ]; then return; fi
+    login caching HOSTNAME...
+
+    cache_raw_push
+
+    if [ "$RAW_PUSH" != "INVALID" ]; then
+        log using RAW_PUSH="$RAW_PUSH"...
+        HOSTNAME=$(echo "$RAW_PUSH" | cut -d / -f 3 | cut -d : -f 1)
+    else
+        HOSTNAME=$(git config --get user.gerrit-hostanme || true)
+        if [ "z$HOSTNAME" == "z" ]; then
+            log using default hostname...
+            HOSTNAME=$DEFAULT_HOSTNAME
+        else
+            log using hostname from git config...
+        fi
+    fi
+
+    logout HOSTNAME="$HOSTNAME"
+}
+
+cache_address() {
+    if [ "z$ADDRESS" != "z" ]; then return; fi
+    login caching ADDRESS...
+
+    cache_raw_push
+
+    if [ "$RAW_PUSH" != "INVALID" ]; then
+        log using RAW_PUSH="$RAW_PUSH"...
+        ADDRESS=$(echo "$RAW_PUSH" | cut -d / -f 3)
+    else
+        ADDRESS=$(git config --get user.gerrit-address || true)
+        if [ "z$ADDRESS" == "z" ]; then
+            cache_hostname
+            log using default port with HOSTNAME="$HOSTNAME"...
+            ADDRESS=$HOSTNAME:$DEFAULT_PORT
+        else
+            log using address from git config...
+        fi
+    fi
+
+    logout ADDRESS="$ADDRESS"
+}
+
+cache_project() {
+    if [ "z$PROJECT" != "z" ]; then return; fi
+    login caching PROJECT...
+
+    cache_raw_push
+
+    if [ "$RAW_PUSH" != "INVALID" ]; then
+        log using RAW_PUSH="$RAW_PUSH"...
+        PROJECT=$(echo "$RAW_PUSH" | cut -d / -f 4)
+    else
+        PROJECT=$(git config --get user.gerrit-project || true)
+        if [ "z$PROJECT" == "z" ]; then
+            log using default project...
+            PROJECT=$DEFAULT_PROJECT
+        else
+            log using project from git config...
+        fi
+    fi
+
+    logout PROJECT="$PROJECT"
+}
+
+cache_repo() {
+    if [ "z$REPO" != "z" ]; then return; fi
+    login caching REPO...
+
+    REPO=$(basename "$(git rev-parse --show-toplevel)")
+
+    logout REPO="$REPO"
+}
+
+cache_remote_name() {
+    if [ "z$REMOTE_NAME" != "z" ]; then return; fi
+    login caching REMOTE_NAME...
+
+    # cache under the assumption of it being named gerrit. if there is none
+    # named that, we'll use defaults and find the updated remote name.
+    log attempting to cache address when REMOTE_NAME=gerrit...
+    REMOTE_NAME=gerrit
+    cache_address
+
+    REMOTE_NAME=$(git remote -v \
+        | grep push \
+        | grep "$ADDRESS" \
+        | awk '{print $1}' \
+        | head -n 1 \
+        || true)
+
+    # nope, we didn't find it. just use gerrit for good error messages.
+    if [ "z$REMOTE_NAME" == "z" ]; then
+        log using default remote name...
+        REMOTE_NAME=$DEFAULT_REMOTE_NAME
+    else
+        # invalidate the raw push url. address and hostname are right because
+        # we found them in the remote list.
+        log found based on ADDRESS="$ADDRESS"...
+        RAW_PUSH=
+    fi
+
+    logout REMOTE_NAME="$REMOTE_NAME"
+}
+
+cache_remote_push() {
+    if [ "z$REMOTE_PUSH" != "z" ]; then return; fi
+    login caching REMOTE_PUSH...
+
+    cache_remote_name
+
+    REMOTE_PUSH=$(git remote get-url --push "$REMOTE_NAME" 2>/dev/null || true)
+
+    if [ "z$REMOTE_PUSH" == "z" ]; then
+        log REMOTE_NAME="$REMOTE_NAME" not found. using calculated REMOTE_PUSH="$REMOTE_PUSH"...
+
+        cache_username
+        cache_address
+        cache_project
+        cache_repo
+
+        REMOTE_PUSH="ssh://$USERNAME@$ADDRESS/$PROJECT/$REPO"
+    else
+        log using address from REMOTE_NAME="$REMOTE_NAME"...
+    fi
+
+    logout REMOTE_PUSH="$REMOTE_PUSH"
+}
+
+cache_remote_branch() {
+    if [ "z$REMOTE_BRANCH" != "z" ]; then return; fi
+    login caching REMOTE_BRANCH...
+
+    LOCAL_REF=$(git symbolic-ref HEAD)
+    LOCAL_NAME=${LOCAL_REF##refs/heads/}
+    REMOTE_REF=$(git config "branch.${LOCAL_NAME}.merge")
+    REMOTE_BRANCH=${REMOTE_REF##refs/heads/}
+
+    if [ "z$REMOTE_BRANCH" == "z" ]; then
+        log using default remote branch...
+        REMOTE_BRANCH=$DEFAULT_REMOTE_BRANCH
+    else
+        log using remote tracking branch of "$LOCAL_NAME"...
+    fi
+
+    logout REMOTE_BRANCH="$REMOTE_BRANCH"
+}
+
+cache_reviewers() {
+    if [ "z$REVIEWERS" != "z" ]; then return; fi
+
+    for ARG in "$@"; do
+        REVIEWERS="$REVIEWERS --reviewer=$ARG"
+    done
+
+    if [ "z$REVIEWERS" == "z" ]; then
+        REVIEWERS=" "
+    fi
+}

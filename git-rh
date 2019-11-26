@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+source $(dirname $0)/gerrit-support
+
+if [ "z$(git status --untracked-files=no --porcelain)" != "z" ]; then
+    echo "It is unsafe to reset --hard with a dirty status. Please commit/stash and try again."
+    exit 1
+fi
+
+cache_remote_push
+cache_hostname
+
+if [ $# -eq 1 ]; then
+    REF=$(curl -f -s "https://$HOSTNAME/changes/$1/revisions/current/commit" | \
+            tail -n+2 | \
+            jq -r .commit)
+else
+    cache_remote_branch
+    REF=$REMOTE_BRANCH
+fi
+
+run git fetch "$REMOTE_PUSH" "$REF"
+run git reset --hard FETCH_HEAD
