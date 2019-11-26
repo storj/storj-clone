@@ -2,8 +2,8 @@
 
 ## Installation
 
-1. Place git-pr, git-pd and git-rh into your PATH
-2. Ensure gerrit-support is in the same directory as git-pr, git-pd and git-rh
+1. Place `git-pr`, `git-pd` and `git-rh` into your PATH
+2. Ensure `gerrit-support` is in the same directory as `git-pr`, `git-pd` and `git-rh`
 
 ---
 
