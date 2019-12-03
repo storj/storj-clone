@@ -1,0 +1,87 @@
+#!/bin/sh
+
+set -e
+
+trap 'RC=$?; if test "$RC" != 0 ; then echo "Error! Step exited with exit code $RC."; exit $RC; fi' EXIT
+
+if test "$#" != 1 && test "$#" != 2 ; then
+  echo "usage: $0 <repository> [destination]"
+  exit 1
+fi
+
+HOST="${GERRIT%%:*}"
+HOST="${HOST:-review.dev.storj.io}"
+PORT="${GERRIT#*:}"
+PORT="${PORT:-29418}"
+
+GIST_USER="${GIST_USER:-zeebo}"
+GIST_ID="${GIST_ID:-108b15abab91cc3d9cfbf367090d6fa5}"
+GIST_REV="${GIST_REV:-027bcfa8351862c4b7ae4f97d952743eae300bc3}"
+GIST_BASE="${GIST_BASE:-https://gist.githubusercontent.com/${GIST_USER}/${GIST_ID}/raw/${GIST_REV}}"
+
+REPO="$1"
+DEST="${2:-${REPO}}"
+USER="$(git config --global --get github.user)"
+
+if test -z "${USER}" ; then
+    echo "Unable to find github username in git config. Checking with github..."
+
+    USER="$(ssh -xT git@github.com 2>&1 | awk '$1=="Hi" {print $2}' | sed -e 's/!//g')"
+
+    if test -z "${USER}" ; then
+        echo "Unable to find github username with github. Please run"
+        echo ""
+        echo "    git config --global --add github.user <your github username>"
+        echo ""
+        echo "and then run $0 $* again."
+        exit 1
+    fi
+
+    echo "Detected your github username to be ${USER}. Running"
+    echo ""
+    echo "    git config --global --add github.user ${USER}"
+    echo ""
+
+    git config --global --add github.user "${USER}"
+fi
+
+(
+    if test ! -e "${DEST}" ; then
+        git clone "ssh://${USER}@${HOST}:${PORT}/storj/${REPO}" "${DEST}"
+    else
+        echo "Repository already exists at ${DEST}. Skipping clone."
+    fi
+)
+
+(
+    echo "Adding commit-msg hook..."
+    mkdir -p "${DEST}/.git/hooks"
+    rm -f "${DEST}/.git/hooks/commit-msg"
+    curl -LsSo "${DEST}/.git/hooks/commit-msg" "https://${HOST}/tools/hooks/commit-msg"
+)
+
+(
+    echo "Adding gerrit-support aliases... "
+
+    cd "${DEST}"
+
+    mkdir -p ".git/gerrit"
+
+    rm -f ".git/gerrit/gerrit-support"
+    curl -LsSo ".git/gerrit/gerrit-support" "${GIST_BASE}/gerrit-support"
+
+    rm -f ".git/gerrit/push-draft"
+    curl -LsSo ".git/gerrit/push-draft" "${GIST_BASE}/git-pd"
+    chmod +x ".git/gerrit/push-draft"
+    git config alias.push-draft "!./.git/gerrit/push-draft"
+
+    rm -f ".git/gerrit/push-review"
+    curl -LsSo ".git/gerrit/push-review" "${GIST_BASE}/git-pr"
+    chmod +x ".git/gerrit/push-review"
+    git config alias.push-review "!./.git/gerrit/push-review"
+
+    rm -f ".git/gerrit/reset-to"
+    curl -LsSo ".git/gerrit/reset-to" "${GIST_BASE}/git-rh"
+    chmod +x ".git/gerrit/reset-to"
+    git config alias.reset-to "!./.git/gerrit/reset-to"
+)
