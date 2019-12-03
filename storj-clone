@@ -16,8 +16,8 @@ PORT="${PORT:-29418}"
 
 GIST_USER="${GIST_USER:-zeebo}"
 GIST_ID="${GIST_ID:-108b15abab91cc3d9cfbf367090d6fa5}"
-GIST_REV="${GIST_REV:-027bcfa8351862c4b7ae4f97d952743eae300bc3}"
-GIST_BASE="${GIST_BASE:-https://gist.githubusercontent.com/${GIST_USER}/${GIST_ID}/raw/${GIST_REV}}"
+GIST_REV="/${GIST_REV:-}"
+GIST_BASE="${GIST_BASE:-https://gist.githubusercontent.com/${GIST_USER}/${GIST_ID}/raw${GIST_REV}}"
 
 REPO="$1"
 DEST="${2:-${REPO}}"
@@ -45,23 +45,51 @@ if test -z "${USER}" ; then
     git config --global --add github.user "${USER}"
 fi
 
-(
-    if test ! -e "${DEST}" ; then
-        git clone "ssh://${USER}@${HOST}:${PORT}/storj/${REPO}" "${DEST}"
-    else
-        echo "Repository already exists at ${DEST}. Skipping clone."
+REMOTE="ssh://${USER}@${HOST}:${PORT}/storj/${REPO}"
+
+if test ! -e "${DEST}" ; then
+    git clone "${REMOTE}" "${DEST}"
+fi
+
+( # Add/update the gerrit remote
+
+    cd "${DEST}"
+
+    EX_REMOTE="$(git config remote.gerrit.url || true)"
+
+    if test "z${REMOTE}" != "z${EX_REMOTE}" ; then
+        if test -z "${EX_REMOTE}"; then
+            echo "Adding gerrit remote with ${REMOTE}..."
+            git remote add gerrit "${REMOTE}"
+        else
+            echo "Setting gerrit remote to ${REMOTE}..."
+            git remote set-url gerrit "${REMOTE}"
+        fi
     fi
 )
 
-(
-    echo "Adding commit-msg hook..."
-    mkdir -p "${DEST}/.git/hooks"
-    rm -f "${DEST}/.git/hooks/commit-msg"
-    curl -LsSo "${DEST}/.git/hooks/commit-msg" "https://${HOST}/tools/hooks/commit-msg"
+( # Add/update the commit-msg hook
+
+    if test -f "${DEST}/.git/hooks/commit-msg" ; then
+        echo "Updating commit-msg hook..."
+    else
+        echo "Adding commit-msg hook..."
+    fi
+
+    cd "${DEST}"
+
+    mkdir -p ".git/hooks"
+    rm -f ".git/hooks/commit-msg"
+    curl -LsSo ".git/hooks/commit-msg" "https://${HOST}/tools/hooks/commit-msg"
 )
 
-(
-    echo "Adding gerrit-support aliases... "
+( # Add/update the gerrit-support scripts and aliases
+
+    if test -d "${DEST}/.git/gerrit" ; then
+        echo "Updating gerrit-support aliases..."
+    else
+        echo "Adding gerrit-support aliases..."
+    fi
 
     cd "${DEST}"
 
