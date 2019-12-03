@@ -60,7 +60,7 @@ cache_username() {
     if [ "z$USERNAME" != "z" ]; then return; fi
     login caching USERNAME...
 
-    USERNAME=$(git config --get user.gerrit-username || true)
+    USERNAME=$(git config --get github.user || true)
 
     if [ "z$USERNAME" == "z" ]; then
         log using whoami...
@@ -82,7 +82,7 @@ cache_hostname() {
         log pulling hostname from RAW_PUSH="$RAW_PUSH"...
         HOSTNAME=$(echo "$RAW_PUSH" | cut -d / -f 3 | cut -d : -f 1)
     else
-        HOSTNAME=$(git config --get user.gerrit-hostanme || true)
+        HOSTNAME=$(git config --get gerrit.hostanme || true)
         if [ "z$HOSTNAME" == "z" ]; then
             log using default hostname...
             HOSTNAME=$DEFAULT_HOSTNAME
@@ -104,7 +104,7 @@ cache_address() {
         log pulling address from RAW_PUSH="$RAW_PUSH"...
         ADDRESS=$(echo "$RAW_PUSH" | cut -d / -f 3)
     else
-        ADDRESS=$(git config --get user.gerrit-address || true)
+        ADDRESS=$(git config --get gerrit.address || true)
         if [ "z$ADDRESS" == "z" ]; then
             cache_hostname
             log using default port with HOSTNAME="$HOSTNAME"...
@@ -127,7 +127,7 @@ cache_project() {
         log pulling project from RAW_PUSH="$RAW_PUSH"...
         PROJECT=$(echo "$RAW_PUSH" | cut -d / -f 4)
     else
-        PROJECT=$(git config --get user.gerrit-project || true)
+        PROJECT=$(git config --get gerrit.project || true)
         if [ "z$PROJECT" == "z" ]; then
             log using default project...
             PROJECT=$DEFAULT_PROJECT
