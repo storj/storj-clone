@@ -81,6 +81,7 @@ fi
     mkdir -p ".git/hooks"
     rm -f ".git/hooks/commit-msg"
     curl -LsSo ".git/hooks/commit-msg" "https://${HOST}/tools/hooks/commit-msg"
+    chmod +x ".git/hooks/commit-msg"
 )
 
 ( # Add/update the gerrit-support scripts and aliases
