@@ -21,7 +21,7 @@ GIST_BASE="${GIST_BASE:-https://gist.githubusercontent.com/${GIST_USER}/${GIST_I
 
 REPO="$1"
 DEST="${2:-${REPO}}"
-USER="$(git config --global --get github.user)"
+USER="$(git config --global --get github.user || true)"
 
 if test -z "${USER}" ; then
     echo "Unable to find github username in git config. Checking with github..."
