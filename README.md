@@ -2,59 +2,18 @@
 
 ## Installation
 
-1. Place `git-pr`, `git-pd` and `git-rh` into your PATH
-2. Ensure `gerrit-support` is in the same directory as `git-pr`, `git-pd` and `git-rh`
+Use https://gist.github.com/zeebo/ecc0abd0aec09c9eff85b12d788dfc81
 
 ---
 
 ## Usage
 
-### git-rh
+### push-review
 
-`git-rh` is used to "reset hard" to some gerrit changeset or to the most recent upstream ref.
-
-To check out the most recent patchset for change number 147
+`git push-review` is used to create and update changes.
 
 ```
-$ git rh 147
-From ssh://review.dev.storj.io:29418/storj/storj
- * branch              4467c023e340d4bf799b829a387a6ed7b08d8139 -> FETCH_HEAD
-HEAD is now at 4467c023 storagenode/trust: list implementation
-```
-
-To check out the most recent master
-
-```
-$ git rh
-From ssh://review.dev.storj.io:29418/storj/storj
- * branch              master     -> FETCH_HEAD
-HEAD is now at 756b9b9e satellite/payments: coupons and coupon usage (#3648)
-```
-
-If you have an unclean status, `git-rh` will error
-
-```
-$ git status
-On branch master
-Your branch is up to date with 'origin/master'.
-
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-	modified:   README.md
-
-no changes added to commit (use "git add" and/or "git commit -a")
-
-$ git rh
-It is unsafe to reset --hard with a dirty status. Please commit/stash and try again.
-```
-
-### git-pr
-
-`git-pr` is used to create changes and can be read as "git pull request" or "git push review", depending on your preference.
-
-```
-$ git pr
+$ git push-review
 Enumerating objects: 3, done.
 Counting objects: 100% (3/3), done.
 Delta compression using up to 8 threads
@@ -71,12 +30,60 @@ To ssh://review.dev.storj.io:29418/storj/gerrit-testing
  * [new branch]      HEAD -> refs/for/master
 ```
 
-### git-pd
+### reset-to
 
-`git-pd` is exactly like `git-pr` except it pushes a draft. It may not work yet.
+`git reset-to` is used to "reset --hard" to some gerrit changeset or to the most recent upstream ref.
+
+To check out the most recent patchset for change number 147
 
 ```
-$ git pd
+$ git reset-to 147
+From ssh://review.dev.storj.io:29418/storj/storj
+ * branch              4467c023e340d4bf799b829a387a6ed7b08d8139 -> FETCH_HEAD
+HEAD is now at 4467c023 storagenode/trust: list implementation
+```
+
+To check out the most recent master
+
+```
+$ git reset-to
+From ssh://review.dev.storj.io:29418/storj/storj
+ * branch              master     -> FETCH_HEAD
+HEAD is now at 756b9b9e satellite/payments: coupons and coupon usage (#3648)
+```
+
+If you have an unclean status, `git reset-to` will error
+
+```
+$ git status
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   README.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git reset-to
+It is unsafe to reset --hard with a dirty status. Please commit/stash and try again.
+```
+
+### pick
+
+`git pick` is used to cherry-pick the lastest version of some change.
+
+```
+$ git pick 147
+```
+
+### push-draft
+
+`git push-draft` is exactly like `git push-review` except it pushes a draft. It may not work yet.
+
+```
+$ git push-draft
 Enumerating objects: 3, done.
 Counting objects: 100% (3/3), done.
 Delta compression using up to 8 threads
@@ -101,7 +108,7 @@ error: failed to push some refs to 'ssh://zeebo@review.dev.storj.io:29418/storj/
 If you're running into any problems, run the commands with `TEST=1` set. This will have the commands output a bunch of debug logging and not execute any state changing commands. Hopefully that will either let you figure out what's wrong, or you can paste it into #gerrit and get some help. For example,
 
 ```
-$ TEST=1 git rh
+$ TEST=1 git reset-to
 --- caching REMOTE_PUSH...
 ---     caching REMOTE_NAME...
 ---         attempting to cache address when REMOTE_NAME=gerrit...

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+source $(dirname $0)/gerrit-support
+
+if [ $# -ne 1 ]; then
+    echo "Changeset number required: git pick <changeset>"
+    exit 1
+fi
+
+cache_hostname
+
+curl -f -s "https://$HOSTNAME/changes/$1/revisions/current/commit" | \
+    tail -n+2 | \
+    jq -r .commit
