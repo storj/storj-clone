@@ -6,14 +6,14 @@ if [ "z$(git status --untracked-files=no --porcelain)" != "z" ]; then
     exit 1
 fi
 
+cache_remote_push
+
 if [ $# -eq 1 ]; then
-    REF="$($(dirname $0)/changeset "$1")"
+    REF="$(changeset "$1")"
 else
     cache_remote_branch
     REF=$REMOTE_BRANCH
 fi
-
-cache_remote_push
 
 run git fetch "$REMOTE_PUSH" "$REF"
 run git reset --hard FETCH_HEAD

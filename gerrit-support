@@ -241,3 +241,13 @@ cache_reviewers() {
         REVIEWERS=" "
     fi
 }
+
+changeset() {
+    cache_hostname
+    
+    log curling "$HOSTNAME" to find latest patchset for changeset "$1"...
+    
+    curl -f -s "https://$HOSTNAME/changes/$1/revisions/current/commit" | \
+        tail -n+2 | \
+        jq -r .commit
+ }

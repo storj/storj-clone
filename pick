@@ -6,9 +6,9 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-REF="$($(dirname $0)/changeset "$1")"
-
 cache_remote_push
+
+REF="$(changeset "$1")"
 
 run git fetch "$REMOTE_PUSH" "$REF"
 run git cherry-pick FETCH_HEAD
