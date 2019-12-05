@@ -100,17 +100,27 @@ fi
     curl -LsSo ".git/gerrit/gerrit-support" "${GIST_BASE}/gerrit-support"
 
     rm -f ".git/gerrit/push-draft"
-    curl -LsSo ".git/gerrit/push-draft" "${GIST_BASE}/git-pd"
+    curl -LsSo ".git/gerrit/push-draft" "${GIST_BASE}/push-draft"
     chmod +x ".git/gerrit/push-draft"
     git config alias.push-draft "!./.git/gerrit/push-draft"
 
     rm -f ".git/gerrit/push-review"
-    curl -LsSo ".git/gerrit/push-review" "${GIST_BASE}/git-pr"
+    curl -LsSo ".git/gerrit/push-review" "${GIST_BASE}/push-review"
     chmod +x ".git/gerrit/push-review"
     git config alias.push-review "!./.git/gerrit/push-review"
 
     rm -f ".git/gerrit/reset-to"
-    curl -LsSo ".git/gerrit/reset-to" "${GIST_BASE}/git-rh"
+    curl -LsSo ".git/gerrit/reset-to" "${GIST_BASE}/reset-to"
     chmod +x ".git/gerrit/reset-to"
     git config alias.reset-to "!./.git/gerrit/reset-to"
+    
+    rm -f ".git/gerrit/pick"
+    curl -LsSo ".git/gerrit/pick" "${GIST_BASE}/pick"
+    chmod +x ".git/gerrit/pick"
+    git config alias.pick "!./.git/gerrit/pick"
+    
+    rm -f ".git/gerrit/changeset"
+    curl -LsSo ".git/gerrit/changeset" "${GIST_BASE}/changeset"
+    chmod +x ".git/gerrit/changeset"
+    git config alias.changeset "!./.git/gerrit/changeset"
 )
