@@ -199,6 +199,7 @@ cache_remote_push() {
         REMOTE_PUSH="ssh://$USERNAME@$ADDRESS/$PROJECT/$REPO"
     else
         log using push url from REMOTE_NAME="$REMOTE_NAME"...
+        REMOTE_PUSH="$REMOTE_NAME"
     fi
 
     logout REMOTE_PUSH="$REMOTE_PUSH"
