@@ -8,4 +8,4 @@ cache_reviewers "$@"
 run git push \
     --receive-pack="gerrit receive-pack $REVIEWERS" \
     "$REMOTE_PUSH" \
-    "HEAD:refs/drafts/$REMOTE_BRANCH"
+    "HEAD:refs/for/$REMOTE_BRANCH%wip"
