@@ -6,11 +6,11 @@ You can run this script straight from curl, if you want. You can use it to set u
 
 ### Set up an existing repository
 
-`curl -sS https://gist.githubusercontent.com/zeebo/ecc0abd0aec09c9eff85b12d788dfc81/raw/storj-clone | sh`
+`curl -sSL storj.io/clone | sh`
 
 ### Clone a new repository
 
-`curl -sS https://gist.githubusercontent.com/zeebo/ecc0abd0aec09c9eff85b12d788dfc81/raw/storj-clone | sh -s <repo>`
+`curl -sSL storj.io/clone | sh -s <repo>`
 
 ## Installation
 
