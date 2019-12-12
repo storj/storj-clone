@@ -1,5 +1,7 @@
 #!/bin/sh
 
+run() { # place body in a function to avoid partial executions
+
 set -e
 
 trap 'RC=$?; if test "$RC" != 0 && test "$RC" != 66 ; then echo "Error! Step exited with exit code $RC."; exit $RC; fi' EXIT
@@ -158,3 +160,7 @@ REMOTE="ssh://${USER}@${HOST}:${PORT}/storj/${REPO}"
     chmod +x ".git/gerrit/changeset"
     git config alias.changeset "!./.git/gerrit/changeset"
 )
+
+}
+
+run "$@"
