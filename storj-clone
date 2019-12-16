@@ -34,7 +34,7 @@ GIST_BASE="${GIST_BASE:-https://gist.githubusercontent.com/${GIST_USER}/${GIST_I
 # absolute path to the git repository, then the command line argument, then the
 # name of the repo.
 
-if test "$#" == 0 ; then
+if test "$#" -eq 0 ; then
     DEST=$(git rev-parse --show-toplevel 2>/dev/null || true)
     REPO=$(basename "${DEST}")
 fi
