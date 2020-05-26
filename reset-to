@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-source $(dirname $0)/gerrit-support
+
+# shellcheck source=gerrit-support
+source "$(dirname "$0")/gerrit-support"
 
 if [ "z$(git status --untracked-files=no --porcelain)" != "z" ]; then
     echo "It is unsafe to reset --hard with a dirty status. Please commit/stash and try again."

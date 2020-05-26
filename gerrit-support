@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 set -euo pipefail
 
 DEPTH=
@@ -211,7 +213,14 @@ cache_remote_branch() {
 
     cache_remote_name
 
-    LOCAL_REF=$(git symbolic-ref HEAD)
+    LOCAL_REF=$(git symbolic-ref HEAD 2>/dev/null || true)
+
+    if [ "z$LOCAL_REF" == "z" ]; then
+        log could not find symbolic-ref of HEAD. assuming master
+
+        LOCAL_REF="master"
+    fi
+
     LOCAL_NAME=${LOCAL_REF##refs/heads/}
     REMOTE_REF=$(git config "branch.${LOCAL_NAME}.merge" || true)
     REMOTE_REMOTE=$(git config "branch.${LOCAL_NAME}.remote" || true)
@@ -244,9 +253,9 @@ cache_reviewers() {
 
 changeset() {
     cache_hostname
-    
+
     log curling "$HOSTNAME" to find latest patchset for changeset "$1"...
-    
+
     curl -f -s "https://$HOSTNAME/changes/$1/revisions/current/commit" | \
         tail -n+2 | \
         jq -r .commit
