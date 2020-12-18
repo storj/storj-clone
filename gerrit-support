@@ -28,7 +28,7 @@ DEFAULT_HOSTNAME=review.dev.storj.io
 DEFAULT_PORT=29418
 DEFAULT_PROJECT=storj
 DEFAULT_REMOTE_NAME=gerrit
-DEFAULT_REMOTE_BRANCH=master
+DEFAULT_REMOTE_BRANCH=main
 
 USERNAME=
 HOSTNAME=
@@ -39,6 +39,7 @@ REMOTE_NAME=
 REMOTE_PUSH=
 RAW_PUSH=
 REMOTE_BRANCH=
+REMOTE_HEAD_NAME=
 REVIEWERS=
 
 cache_raw_push() {
@@ -214,29 +215,53 @@ cache_remote_branch() {
     cache_remote_name
 
     LOCAL_REF=$(git symbolic-ref HEAD 2>/dev/null || true)
-
-    if [ "z$LOCAL_REF" == "z" ]; then
-        log could not find symbolic-ref of HEAD. assuming master
-
-        LOCAL_REF="master"
-    fi
-
     LOCAL_NAME=${LOCAL_REF##refs/heads/}
     REMOTE_REF=$(git config "branch.${LOCAL_NAME}.merge" || true)
     REMOTE_REMOTE=$(git config "branch.${LOCAL_NAME}.remote" || true)
     REMOTE_BRANCH=${REMOTE_REF##refs/heads/}
 
     if [ "z$REMOTE_BRANCH" == "z" ]; then
-        log using default remote branch...
-        REMOTE_BRANCH=$DEFAULT_REMOTE_BRANCH
+        log using default remote head name...
+
+        cache_remote_head_name
+        REMOTE_BRANCH=$REMOTE_HEAD_NAME
+
     elif [ "$REMOTE_NAME" != "$REMOTE_REMOTE" ]; then
         log using default branch because REMOTE_NAME="$REMOTE_NAME" but the branch remote is "$REMOTE_REMOTE"...
-        REMOTE_BRANCH=$DEFAULT_REMOTE_BRANCH
+
+        cache_remote_head_name
+        REMOTE_BRANCH=$REMOTE_HEAD_NAME
     else
         log using remote tracking branch of "$LOCAL_NAME"...
     fi
 
     logout REMOTE_BRANCH="$REMOTE_BRANCH"
+}
+
+cache_remote_head_name() {
+    if [ "z$REMOTE_HEAD_NAME" != "z" ]; then return; fi
+    login caching REMOTE_HEAD_NAME
+
+    cache_remote_name
+
+    FULL_REF=$(git rev-parse --symbolic-full-name "$REMOTE_NAME/HEAD" 2>/dev/null || true)
+
+    if [ "z$FULL_REF" == "z" ]; then
+        log could not find symbolic-ref of "$REMOTE_NAME/HEAD". calling set-head...
+
+        git remote set-head "$REMOTE_NAME" -a >/dev/null || true
+        FULL_REF=$(git rev-parse --symbolic-full-name "$REMOTE_NAME/HEAD" 2>/dev/null || true)
+    fi
+
+    if [ "z$FULL_REF" == "z" ]; then
+        log still could not find symblic-ref of "$REMOTE_NAME/HEAD". assuming "$DEFAULT_REMOTE_BRANCH".
+
+        FULL_REF="refs/remotes/$REMOTE_NAME/$DEFAULT_REMOTE_BRANCH"
+    fi
+
+    REMOTE_HEAD_NAME=${FULL_REF#refs/remotes/$REMOTE_NAME/}
+
+    logout REMOTE_HEAD_NAME="$REMOTE_HEAD_NAME"
 }
 
 cache_reviewers() {
