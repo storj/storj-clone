@@ -28,7 +28,7 @@ DEFAULT_HOSTNAME=review.dev.storj.io
 DEFAULT_PORT=29418
 DEFAULT_PROJECT=storj
 DEFAULT_REMOTE_NAME=gerrit
-DEFAULT_REMOTE_BRANCH=main
+DEFAULT_BRANCH=main
 
 USERNAME=
 HOSTNAME=
@@ -215,19 +215,21 @@ cache_remote_branch() {
     cache_remote_name
 
     LOCAL_REF=$(git symbolic-ref HEAD 2>/dev/null || true)
-    LOCAL_NAME=${LOCAL_REF##refs/heads/}
-    REMOTE_REF=$(git config "branch.${LOCAL_NAME}.merge" || true)
-    REMOTE_REMOTE=$(git config "branch.${LOCAL_NAME}.remote" || true)
-    REMOTE_BRANCH=${REMOTE_REF##refs/heads/}
+
+    if [ "z$LOCAL_REF" != "z" ]; then
+        REMOTE_REF=$(git config "branch.${LOCAL_NAME}.merge" || true)
+        REMOTE_REMOTE=$(git config "branch.${LOCAL_NAME}.remote" || true)
+        REMOTE_BRANCH=${REMOTE_REF##refs/heads/}
+    fi
 
     if [ "z$REMOTE_BRANCH" == "z" ]; then
-        log using default remote head name...
+        log could not find local remote tracking branch. using remote head name...
 
         cache_remote_head_name
         REMOTE_BRANCH=$REMOTE_HEAD_NAME
 
     elif [ "$REMOTE_NAME" != "$REMOTE_REMOTE" ]; then
-        log using default branch because REMOTE_NAME="$REMOTE_NAME" but the branch remote is "$REMOTE_REMOTE"...
+        log using remote head name because REMOTE_NAME="$REMOTE_NAME" but the branch remote is "$REMOTE_REMOTE"...
 
         cache_remote_head_name
         REMOTE_BRANCH=$REMOTE_HEAD_NAME
@@ -254,9 +256,9 @@ cache_remote_head_name() {
     fi
 
     if [ "z$FULL_REF" == "z" ]; then
-        log still could not find symblic-ref of "$REMOTE_NAME/HEAD". assuming "$DEFAULT_REMOTE_BRANCH".
+        log still could not find symblic-ref of "$REMOTE_NAME/HEAD". assuming "$DEFAULT_BRANCH".
 
-        FULL_REF="refs/remotes/$REMOTE_NAME/$DEFAULT_REMOTE_BRANCH"
+        FULL_REF="refs/remotes/$REMOTE_NAME/$DEFAULT_BRANCH"
     fi
 
     REMOTE_HEAD_NAME=${FULL_REF#refs/remotes/$REMOTE_NAME/}
