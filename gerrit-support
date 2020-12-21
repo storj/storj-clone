@@ -217,6 +217,7 @@ cache_remote_branch() {
     LOCAL_REF=$(git symbolic-ref HEAD 2>/dev/null || true)
 
     if [ "z$LOCAL_REF" != "z" ]; then
+        LOCAL_NAME=${LOCAL_REF##refs/heads/}
         REMOTE_REF=$(git config "branch.${LOCAL_NAME}.merge" || true)
         REMOTE_REMOTE=$(git config "branch.${LOCAL_NAME}.remote" || true)
         REMOTE_BRANCH=${REMOTE_REF##refs/heads/}
