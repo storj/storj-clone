@@ -247,13 +247,13 @@ cache_remote_head_name() {
 
     cache_remote_name
 
-    FULL_REF=$(git rev-parse --symbolic-full-name "$REMOTE_NAME/HEAD" 2>/dev/null || true)
+    FULL_REF=$(git symbolic-ref "refs/remotes/$REMOTE_NAME/HEAD" 2>/dev/null || true)
 
     if [ "z$FULL_REF" == "z" ]; then
         log could not find symbolic-ref of "$REMOTE_NAME/HEAD". calling set-head...
 
         git remote set-head "$REMOTE_NAME" -a >/dev/null || true
-        FULL_REF=$(git rev-parse --symbolic-full-name "$REMOTE_NAME/HEAD" 2>/dev/null || true)
+        FULL_REF=$(git symbolic-ref "refs/remotes/$REMOTE_NAME/HEAD" 2>/dev/null || true)
     fi
 
     if [ "z$FULL_REF" == "z" ]; then
