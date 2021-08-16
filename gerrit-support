@@ -83,7 +83,7 @@ cache_hostname() {
 
     if [ "$RAW_PUSH" != "INVALID" ]; then
         log pulling hostname from RAW_PUSH="$RAW_PUSH"...
-        HOSTNAME=$(echo "$RAW_PUSH" | cut -d / -f 3 | cut -d : -f 1)
+        HOSTNAME=$(echo "$RAW_PUSH" | cut -d / -f 3 | cut -d : -f 1 | cut -d @ -f 2)
     else
         HOSTNAME=$(git config --get gerrit.hostanme || true)
         if [ "z$HOSTNAME" == "z" ]; then
@@ -105,7 +105,7 @@ cache_address() {
 
     if [ "$RAW_PUSH" != "INVALID" ]; then
         log pulling address from RAW_PUSH="$RAW_PUSH"...
-        ADDRESS=$(echo "$RAW_PUSH" | cut -d / -f 3)
+        ADDRESS=$(echo "$RAW_PUSH" | cut -d / -f 3 | cut -d @ -f 2)
     else
         ADDRESS=$(git config --get gerrit.address || true)
         if [ "z$ADDRESS" == "z" ]; then
@@ -286,5 +286,5 @@ changeset() {
 
     curl -f -s "https://$HOSTNAME/changes/$1/revisions/current/commit" | \
         tail -n+2 | \
-        jq -r .commit
+        cut -d '"' -f 4
  }
