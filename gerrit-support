@@ -62,14 +62,20 @@ cache_raw_push() {
 cache_username() {
     if [ "z$USERNAME" != "z" ]; then return; fi
     login caching USERNAME...
-
-    USERNAME=$(git config --get github.user || true)
-
+    
+    USERNAME=$(git config --get gerrit.user || true)
     if [ "z$USERNAME" == "z" ]; then
-        log using whoami...
-        USERNAME=$(whoami)
+    
+        USERNAME=$(git config --get github.user || true)
+
+        if [ "z$USERNAME" == "z" ]; then
+            log using whoami...
+            USERNAME=$(whoami)
+        else
+            log using username from github.user git config...
+        fi
     else
-        log using username from git config...
+        log using username from gerrit.user git config...
     fi
 
     logout USERNAME="$USERNAME"

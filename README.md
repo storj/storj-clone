@@ -140,6 +140,6 @@ The tools attempt to figure out what your intent is without having to configure 
 
 First, it tries to figure out the remote to push to. If there's a remote with `review.dev.storj.io` in the name, it uses that. Otherwise, if there's a remote named `gerrit`, it uses that.
 
-Second, it ensures that the remote name exists. If it doesn't, it constructs a remote by looking at your username, your project configuration, and the directory name of the git repository. You can override the username by setting the `github.user` git config, and the project name by setting the `gerrit.project` git config. The name of the repo is always taken from the git directory.
+Second, it ensures that the remote name exists. If it doesn't, it constructs a remote by looking at your username, your project configuration, and the directory name of the git repository. You can override the username by setting the `gerrit.user` or `github.user` git config (in that priority order), and the project name by setting the `gerrit.project` git config. The name of the repo is always taken from the git directory.
 
-Finally, it will push to whatever the remote tracking branch is for the current branch you're on. If there's no remote tracking branch, it uses `master`.
+Finally, it will push to whatever the remote tracking branch is for the current branch you're on. If there's no remote tracking branch, it uses `main`.
