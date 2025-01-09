@@ -7,7 +7,7 @@ set -e
 trap 'RC=$?; if test "$RC" != 0 && test "$RC" != 66 ; then echo "Error! Step exited with exit code $RC."; exit $RC; fi' EXIT
 
 usage() {
-  echo "usage: curl storj.io/clone | sh [-c repository [destination]]"
+  echo "usage: curl -L storj.io/clone | sh [-c repository [destination]]"
   echo ""
   echo "storj-clone clones the specified repository from gerrit into the optional destination."
   echo "If no repository is specified, it looks at the current directory to see if it is a"
