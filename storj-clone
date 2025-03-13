@@ -20,7 +20,7 @@ if test "$#" -ne 0 && test "$#" -ne 1 && test "$#" -ne 2 ; then
 fi
 
 HOST="${GERRIT%%:*}"
-HOST="${HOST:-review.dev.storj.io}"
+HOST="${HOST:-review.dev.storj.tools}"
 PORT="${GERRIT#*:}"
 PORT="${PORT:-29418}"
 
