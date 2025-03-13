@@ -24,9 +24,9 @@ remote: Processing changes: refs: 1, new: 1, done
 remote:
 remote: SUCCESS
 remote:
-remote:   https://review.dev.storj.io/c/storj/gerrit-testing/+/163 add foo [NEW]
+remote:   https://review.dev.storj.tools/c/storj/gerrit-testing/+/163 add foo [NEW]
 remote:
-To ssh://review.dev.storj.io:29418/storj/gerrit-testing
+To ssh://review.dev.storj.tools:29418/storj/gerrit-testing
  * [new branch]      HEAD -> refs/for/master
 ```
 
@@ -38,7 +38,7 @@ To check out the most recent patchset for change number 147
 
 ```
 $ git reset-to 147
-From ssh://review.dev.storj.io:29418/storj/storj
+From ssh://review.dev.storj.tools:29418/storj/storj
  * branch              4467c023e340d4bf799b829a387a6ed7b08d8139 -> FETCH_HEAD
 HEAD is now at 4467c023 storagenode/trust: list implementation
 ```
@@ -47,7 +47,7 @@ To check out the most recent master
 
 ```
 $ git reset-to
-From ssh://review.dev.storj.io:29418/storj/storj
+From ssh://review.dev.storj.tools:29418/storj/storj
  * branch              master     -> FETCH_HEAD
 HEAD is now at 756b9b9e satellite/payments: coupons and coupon usage (#3648)
 ```
@@ -96,9 +96,9 @@ remote: Verify that you are pushing to the right branch.
 remote: User: zeebo
 remote: Contact an administrator to fix the permissions
 remote: Processing changes: refs: 1, done
-To ssh://review.dev.storj.io:29418/storj/gerrit-testing
+To ssh://review.dev.storj.tools:29418/storj/gerrit-testing
  ! [remote rejected] HEAD -> refs/drafts/master (draft workflow is disabled)
-error: failed to push some refs to 'ssh://zeebo@review.dev.storj.io:29418/storj/gerrit-testing'
+error: failed to push some refs to 'ssh://zeebo@review.dev.storj.tools:29418/storj/gerrit-testing'
 ```
 
 ---
@@ -118,17 +118,17 @@ $ TEST=1 git reset-to
 ---             RAW_PUSH=INVALID
 ---             caching HOSTNAME...
 ---                 using default hostname...
----             HOSTNAME=review.dev.storj.io
----             using default port with HOSTNAME=review.dev.storj.io...
----         ADDRESS=review.dev.storj.io:29418
----         found based on ADDRESS=review.dev.storj.io:29418...
+---             HOSTNAME=review.dev.storj.tools
+---             using default port with HOSTNAME=review.dev.storj.tools...
+---         ADDRESS=review.dev.storj.tools:29418
+---         found based on ADDRESS=review.dev.storj.tools:29418...
 ---     REMOTE_NAME=origin
 ---     using push url from REMOTE_NAME=origin...
---- REMOTE_PUSH=ssh://zeebo@review.dev.storj.io:29418/storj/gerrit-testing
+--- REMOTE_PUSH=ssh://zeebo@review.dev.storj.tools:29418/storj/gerrit-testing
 --- caching REMOTE_BRANCH...
 ---     using remote tracking branch of master...
 --- REMOTE_BRANCH=master
-git fetch ssh://zeebo@review.dev.storj.io:29418/storj/gerrit-testing master
+git fetch ssh://zeebo@review.dev.storj.tools:29418/storj/gerrit-testing master
 git reset --hard FETCH_HEAD
 ```
 
@@ -138,7 +138,7 @@ git reset --hard FETCH_HEAD
 
 The tools attempt to figure out what your intent is without having to configure a lot. By default, if your computer's username matches your gerrit username, everything should just work. Here's how:
 
-First, it tries to figure out the remote to push to. If there's a remote with `review.dev.storj.io` in the name, it uses that. Otherwise, if there's a remote named `gerrit`, it uses that.
+First, it tries to figure out the remote to push to. If there's a remote with `review.dev.storj.tools` in the name, it uses that. Otherwise, if there's a remote named `gerrit`, it uses that.
 
 Second, it ensures that the remote name exists. If it doesn't, it constructs a remote by looking at your username, your project configuration, and the directory name of the git repository. You can override the username by setting the `gerrit.user` or `github.user` git config (in that priority order), and the project name by setting the `gerrit.project` git config. The name of the repo is always taken from the git directory.
 

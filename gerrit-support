@@ -24,7 +24,7 @@ run() {
     >&2 echo "$@"
 }
 
-DEFAULT_HOSTNAME=review.dev.storj.io
+DEFAULT_HOSTNAME=review.dev.storj.tools
 DEFAULT_PORT=29418
 DEFAULT_PROJECT=storj
 DEFAULT_REMOTE_NAME=gerrit
@@ -100,6 +100,11 @@ cache_hostname() {
         fi
     fi
 
+    if [ "z$HOSTNAME" == "zreview.dev.storj.io" ]; then
+        log hostname set to review.dev.storj.io, updating to review.dev.storj.tools...
+        HOSTNAME=review.dev.storj.tools
+    fi
+
     logout HOSTNAME="$HOSTNAME"
 }
 
@@ -121,6 +126,11 @@ cache_address() {
         else
             log using address from git config...
         fi
+    fi
+
+    if [ "z$ADDRESS" == "zreview.dev.storj.io:29418" ]; then
+        log address set to review.dev.storj.io:29148, updating to review.dev.storj.tools:29418...
+        ADDRESS=review.dev.storj.tools:29418
     fi
 
     logout ADDRESS="$ADDRESS"
