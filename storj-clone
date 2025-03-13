@@ -88,6 +88,27 @@ REMOTE="ssh://${USER}@${HOST}:${PORT}/storj/${REPO}"
     fi
 )
 
+( # Migrate origin or gerrit remotes that point at review.dev.storj.io
+
+    cd "${DEST}"
+
+    GERRIT_REMOTE="$(git config remote.gerrit.url || true)"
+    case "${GERRIT_REMOTE}" in
+        *review.dev.storj.io*)
+            echo "Migrating gerrit remote from review.dev.storj.io to review.dev.storj.tools..."
+            git remote set-url gerrit "$(echo "${GERRIT_REMOTE}" | sed -e 's/review.dev.storj.io/review.dev.storj.tools/g')"
+            ;;
+    esac
+
+    ORIGIN_REMOTE="$(git config remote.origin.url || true)"
+    case "${ORIGIN_REMOTE}" in
+        *review.dev.storj.io*)
+            echo "Migrating origin remote from review.dev.storj.io to review.dev.storj.tools..."
+            git remote set-url origin "$(echo "${ORIGIN_REMOTE}" | sed -e 's/review.dev.storj.io/review.dev.storj.tools/g')"
+            ;;
+    esac
+)
+
 ( # Add/update the gerrit remote
 
     cd "${DEST}"
