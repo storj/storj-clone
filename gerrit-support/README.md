@@ -106,7 +106,7 @@ remote: Contact an administrator to fix the permissions
 remote: Processing changes: refs: 1, done
 To ssh://review.dev.storj.tools:29418/storj/gerrit-testing
  ! [remote rejected] HEAD -> refs/drafts/master (draft workflow is disabled)
-error: failed to push some refs to 'ssh://zeebo@review.dev.storj.tools:29418/storj/gerrit-testing'
+error: failed to push some refs to 'ssh://user@review.dev.storj.tools:29418/storj/gerrit-testing'
 ```
 
 ---
@@ -132,11 +132,11 @@ $ TEST=1 git reset-to
 ---         found based on ADDRESS=review.dev.storj.tools:29418...
 ---     REMOTE_NAME=origin
 ---     using push url from REMOTE_NAME=origin...
---- REMOTE_PUSH=ssh://zeebo@review.dev.storj.tools:29418/storj/gerrit-testing
+--- REMOTE_PUSH=ssh://user@review.dev.storj.tools:29418/storj/gerrit-testing
 --- caching REMOTE_BRANCH...
 ---     using remote tracking branch of master...
 --- REMOTE_BRANCH=master
-git fetch ssh://zeebo@review.dev.storj.tools:29418/storj/gerrit-testing master
+git fetch ssh://user@review.dev.storj.tools:29418/storj/gerrit-testing master
 git reset --hard FETCH_HEAD
 ```
 
