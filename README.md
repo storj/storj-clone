@@ -62,4 +62,15 @@ Adding gerrit-support aliases...
 
 ## Added commands
 
-See https://gist.github.com/zeebo/108b15abab91cc3d9cfbf367090d6fa5 for documentation on some aliases storj-clone adds to the repository.
+See [gerrit-support](gerrit-support/README.md) for documentation on some aliases storj-clone adds to the repository.
+
+## Hosting
+
+`storj.io/clone` serves `storj-clone` from the `main` branch of this
+repository; the website build fetches it. The script downloads the
+`gerrit-support` files from `main` too, so set `SUPPORT_REV` to a branch or
+commit to try changes before merging.
+
+This repository was imported from zeebo's gists, history included:
+[storj-clone](https://gist.github.com/zeebo/ecc0abd0aec09c9eff85b12d788dfc81) and
+[gerrit-support](https://gist.github.com/zeebo/108b15abab91cc3d9cfbf367090d6fa5).

@@ -2,7 +2,7 @@
 
 ## Installation
 
-Use https://gist.github.com/zeebo/ecc0abd0aec09c9eff85b12d788dfc81
+Use [storj-clone](../README.md).
 
 ---
 

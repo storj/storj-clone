@@ -24,10 +24,8 @@ HOST="${HOST:-review.dev.storj.tools}"
 PORT="${GERRIT#*:}"
 PORT="${PORT:-29418}"
 
-GIST_USER="${GIST_USER:-zeebo}"
-GIST_ID="${GIST_ID:-108b15abab91cc3d9cfbf367090d6fa5}"
-GIST_REV="/${GIST_REV:-}"
-GIST_BASE="${GIST_BASE:-https://gist.githubusercontent.com/${GIST_USER}/${GIST_ID}/raw${GIST_REV}}"
+SUPPORT_REV="${SUPPORT_REV:-main}"
+SUPPORT_BASE="${SUPPORT_BASE:-https://raw.githubusercontent.com/storj/storj-clone/${SUPPORT_REV}/gerrit-support}"
 
 # set up the repo by looking at the current git directory if none is specified, then
 # by the command line argument, and otherwise error. the destination will be the
@@ -158,30 +156,30 @@ REMOTE="ssh://${USER}@${HOST}:${PORT}/storj/${REPO}"
     mkdir -p ".git/gerrit"
 
     rm -f ".git/gerrit/gerrit-support"
-    curl -LsSo ".git/gerrit/gerrit-support" "${GIST_BASE}/gerrit-support"
+    curl -LsSo ".git/gerrit/gerrit-support" "${SUPPORT_BASE}/gerrit-support"
 
     rm -f ".git/gerrit/push-wip"
-    curl -LsSo ".git/gerrit/push-wip" "${GIST_BASE}/push-wip"
+    curl -LsSo ".git/gerrit/push-wip" "${SUPPORT_BASE}/push-wip"
     chmod +x ".git/gerrit/push-wip"
     git config alias.push-wip "!./.git/gerrit/push-wip"
 
     rm -f ".git/gerrit/push-review"
-    curl -LsSo ".git/gerrit/push-review" "${GIST_BASE}/push-review"
+    curl -LsSo ".git/gerrit/push-review" "${SUPPORT_BASE}/push-review"
     chmod +x ".git/gerrit/push-review"
     git config alias.push-review "!./.git/gerrit/push-review"
 
     rm -f ".git/gerrit/reset-to"
-    curl -LsSo ".git/gerrit/reset-to" "${GIST_BASE}/reset-to"
+    curl -LsSo ".git/gerrit/reset-to" "${SUPPORT_BASE}/reset-to"
     chmod +x ".git/gerrit/reset-to"
     git config alias.reset-to "!./.git/gerrit/reset-to"
 
     rm -f ".git/gerrit/pick"
-    curl -LsSo ".git/gerrit/pick" "${GIST_BASE}/pick"
+    curl -LsSo ".git/gerrit/pick" "${SUPPORT_BASE}/pick"
     chmod +x ".git/gerrit/pick"
     git config alias.pick "!./.git/gerrit/pick"
 
     rm -f ".git/gerrit/changeset"
-    curl -LsSo ".git/gerrit/changeset" "${GIST_BASE}/changeset"
+    curl -LsSo ".git/gerrit/changeset" "${SUPPORT_BASE}/changeset"
     chmod +x ".git/gerrit/changeset"
     git config alias.changeset "!./.git/gerrit/changeset"
 )
