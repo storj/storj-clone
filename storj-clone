@@ -163,6 +163,11 @@ REMOTE="ssh://${USER}@${HOST}:${PORT}/storj/${REPO}"
     chmod +x ".git/gerrit/push-wip"
     git config alias.push-wip "!./.git/gerrit/push-wip"
 
+    rm -f ".git/gerrit/push-it"
+    curl -LsSo ".git/gerrit/push-it" "${SUPPORT_BASE}/push-it"
+    chmod +x ".git/gerrit/push-it"
+    git config alias.push-it "!./.git/gerrit/push-it"
+
     rm -f ".git/gerrit/push-review"
     curl -LsSo ".git/gerrit/push-review" "${SUPPORT_BASE}/push-review"
     chmod +x ".git/gerrit/push-review"

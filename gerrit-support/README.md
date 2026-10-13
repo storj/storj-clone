@@ -30,6 +30,14 @@ To ssh://review.dev.storj.tools:29418/storj/gerrit-testing
  * [new branch]      HEAD -> refs/for/master
 ```
 
+### push-it
+
+`git push-it` is exactly like `git push-review` except it doesn't mark the change ready or work in progress. An existing change keeps its state and a new change gets your Gerrit default.
+
+```
+$ git push-it
+```
+
 ### reset-to
 
 `git reset-to` is used to "reset --hard" to some gerrit changeset or to the most recent upstream ref.
