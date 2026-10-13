@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# shellcheck source=gerrit-support
+source "$(dirname "$0")/gerrit-support"
+
+if [ $# -ne 1 ]; then
+    echo "Changeset number required: git pick <changeset>"
+    exit 1
+fi
+
+cache_remote_push
+
+REF="$(changeset "$1")"
+
+run git fetch "$REMOTE_PUSH" "$REF"
+run git cherry-pick FETCH_HEAD

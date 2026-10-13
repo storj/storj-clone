@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# shellcheck source=gerrit-support
+source "$(dirname "$0")/gerrit-support"
+
+if [ $# -ne 1 ]; then
+    echo "Changeset number required: git changeset <changeset>"
+    exit 1
+fi
+
+changeset "$1"

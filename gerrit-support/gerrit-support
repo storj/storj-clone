@@ -1,0 +1,306 @@
+# shellcheck shell=bash
+
+set -euo pipefail
+
+DEPTH=
+
+login() {
+    log "$@"
+    DEPTH="$DEPTH    "
+}
+
+logout() {
+    DEPTH=${DEPTH%????}
+    log "$@"
+}
+
+log() {
+    if [ -z "${TEST:-""}" ]; then return; fi
+    >&2 echo "--- $DEPTH$*"
+}
+
+run() {
+    if [ -z "${TEST:-""}" ]; then "$@"; return; fi
+    >&2 echo "$@"
+}
+
+DEFAULT_HOSTNAME=review.dev.storj.tools
+DEFAULT_PORT=29418
+DEFAULT_PROJECT=storj
+DEFAULT_REMOTE_NAME=gerrit
+DEFAULT_BRANCH=main
+
+USERNAME=
+HOSTNAME=
+ADDRESS=
+PROJECT=
+REPO=
+REMOTE_NAME=
+REMOTE_PUSH=
+RAW_PUSH=
+REMOTE_BRANCH=
+REMOTE_HEAD_NAME=
+REVIEWERS=
+
+cache_raw_push() {
+    if [ "z$RAW_PUSH" != "z" ]; then return; fi
+    login caching RAW_PUSH...
+
+    cache_remote_name
+
+    RAW_PUSH=$(git remote get-url --push $REMOTE_NAME 2>/dev/null || true)
+    if [ "z$RAW_PUSH" == "z" ]; then
+        log remote for REMOTE_NAME="$REMOTE_NAME" not found...
+        RAW_PUSH=INVALID
+    else
+        log remote for REMOTE_NAME="$REMOTE_NAME" found...
+    fi
+
+    logout RAW_PUSH="$RAW_PUSH"
+}
+
+cache_username() {
+    if [ "z$USERNAME" != "z" ]; then return; fi
+    login caching USERNAME...
+    
+    USERNAME=$(git config --get gerrit.user || true)
+    if [ "z$USERNAME" == "z" ]; then
+    
+        USERNAME=$(git config --get github.user || true)
+
+        if [ "z$USERNAME" == "z" ]; then
+            log using whoami...
+            USERNAME=$(whoami)
+        else
+            log using username from github.user git config...
+        fi
+    else
+        log using username from gerrit.user git config...
+    fi
+
+    logout USERNAME="$USERNAME"
+}
+
+cache_hostname() {
+    if [ "z$HOSTNAME" != "z" ]; then return; fi
+    login caching HOSTNAME...
+
+    cache_raw_push
+
+    if [ "$RAW_PUSH" != "INVALID" ]; then
+        log pulling hostname from RAW_PUSH="$RAW_PUSH"...
+        HOSTNAME=$(echo "$RAW_PUSH" | cut -d / -f 3 | cut -d : -f 1 | cut -d @ -f 2)
+    else
+        HOSTNAME=$(git config --get gerrit.hostanme || true)
+        if [ "z$HOSTNAME" == "z" ]; then
+            log using default hostname...
+            HOSTNAME=$DEFAULT_HOSTNAME
+        else
+            log using hostname from git config...
+        fi
+    fi
+
+    if [ "z$HOSTNAME" == "zreview.dev.storj.io" ]; then
+        log hostname set to review.dev.storj.io, updating to review.dev.storj.tools...
+        HOSTNAME=review.dev.storj.tools
+    fi
+
+    logout HOSTNAME="$HOSTNAME"
+}
+
+cache_address() {
+    if [ "z$ADDRESS" != "z" ]; then return; fi
+    login caching ADDRESS...
+
+    cache_raw_push
+
+    if [ "$RAW_PUSH" != "INVALID" ]; then
+        log pulling address from RAW_PUSH="$RAW_PUSH"...
+        ADDRESS=$(echo "$RAW_PUSH" | cut -d / -f 3 | cut -d @ -f 2)
+    else
+        ADDRESS=$(git config --get gerrit.address || true)
+        if [ "z$ADDRESS" == "z" ]; then
+            cache_hostname
+            log using default port with HOSTNAME="$HOSTNAME"...
+            ADDRESS=$HOSTNAME:$DEFAULT_PORT
+        else
+            log using address from git config...
+        fi
+    fi
+
+    if [ "z$ADDRESS" == "zreview.dev.storj.io:29418" ]; then
+        log address set to review.dev.storj.io:29148, updating to review.dev.storj.tools:29418...
+        ADDRESS=review.dev.storj.tools:29418
+    fi
+
+    logout ADDRESS="$ADDRESS"
+}
+
+cache_project() {
+    if [ "z$PROJECT" != "z" ]; then return; fi
+    login caching PROJECT...
+
+    cache_raw_push
+
+    if [ "$RAW_PUSH" != "INVALID" ]; then
+        log pulling project from RAW_PUSH="$RAW_PUSH"...
+        PROJECT=$(echo "$RAW_PUSH" | cut -d / -f 4)
+    else
+        PROJECT=$(git config --get gerrit.project || true)
+        if [ "z$PROJECT" == "z" ]; then
+            log using default project...
+            PROJECT=$DEFAULT_PROJECT
+        else
+            log using project from git config...
+        fi
+    fi
+
+    logout PROJECT="$PROJECT"
+}
+
+cache_repo() {
+    if [ "z$REPO" != "z" ]; then return; fi
+    login caching REPO...
+
+    log using directory name of git repository...
+    REPO=$(basename "$(git rev-parse --show-toplevel)")
+
+    logout REPO="$REPO"
+}
+
+cache_remote_name() {
+    if [ "z$REMOTE_NAME" != "z" ]; then return; fi
+    login caching REMOTE_NAME...
+
+    # cache under the assumption of it being named gerrit. if there is none
+    # named that, we'll use defaults and find the updated remote name.
+    log attempting to cache address when REMOTE_NAME=gerrit...
+    REMOTE_NAME=gerrit
+    cache_address
+
+    REMOTE_NAME=$(git remote -v \
+        | grep push \
+        | grep "$ADDRESS" \
+        | awk '{print $1}' \
+        | head -n 1 \
+        || true)
+
+    # nope, we didn't find it. just use gerrit for good error messages.
+    if [ "z$REMOTE_NAME" == "z" ]; then
+        log no remote with ADDRESS="$ADDRESS". using default remote name...
+        REMOTE_NAME=$DEFAULT_REMOTE_NAME
+    else
+        log found based on ADDRESS="$ADDRESS"...
+    fi
+
+    logout REMOTE_NAME="$REMOTE_NAME"
+}
+
+cache_remote_push() {
+    if [ "z$REMOTE_PUSH" != "z" ]; then return; fi
+    login caching REMOTE_PUSH...
+
+    cache_remote_name
+
+    REMOTE_PUSH=$(git remote get-url --push "$REMOTE_NAME" 2>/dev/null || true)
+
+    if [ "z$REMOTE_PUSH" == "z" ]; then
+        log could not find remote with REMOTE_NAME="$REMOTE_NAME"...
+
+        # invalidate RAW_PUSH because it can contain assumptions from cache_remote_name
+        RAW_PUSH=
+
+        cache_username
+        cache_address
+        cache_project
+        cache_repo
+
+        REMOTE_PUSH="ssh://$USERNAME@$ADDRESS/$PROJECT/$REPO"
+    else
+        log using push url from REMOTE_NAME="$REMOTE_NAME"...
+        REMOTE_PUSH="$REMOTE_NAME"
+    fi
+
+    logout REMOTE_PUSH="$REMOTE_PUSH"
+}
+
+cache_remote_branch() {
+    if [ "z$REMOTE_BRANCH" != "z" ]; then return; fi
+    login caching REMOTE_BRANCH...
+
+    cache_remote_name
+
+    LOCAL_REF=$(git symbolic-ref HEAD 2>/dev/null || true)
+
+    if [ "z$LOCAL_REF" != "z" ]; then
+        LOCAL_NAME=${LOCAL_REF##refs/heads/}
+        REMOTE_REF=$(git config "branch.${LOCAL_NAME}.merge" || true)
+        REMOTE_REMOTE=$(git config "branch.${LOCAL_NAME}.remote" || true)
+        REMOTE_BRANCH=${REMOTE_REF##refs/heads/}
+    fi
+
+    if [ "z$REMOTE_BRANCH" == "z" ]; then
+        log could not find local remote tracking branch. using remote head name...
+
+        cache_remote_head_name
+        REMOTE_BRANCH=$REMOTE_HEAD_NAME
+
+    elif [ "$REMOTE_NAME" != "$REMOTE_REMOTE" ]; then
+        log using remote head name because REMOTE_NAME="$REMOTE_NAME" but the branch remote is "$REMOTE_REMOTE"...
+
+        cache_remote_head_name
+        REMOTE_BRANCH=$REMOTE_HEAD_NAME
+    else
+        log using remote tracking branch of "$LOCAL_NAME"...
+    fi
+
+    logout REMOTE_BRANCH="$REMOTE_BRANCH"
+}
+
+cache_remote_head_name() {
+    if [ "z$REMOTE_HEAD_NAME" != "z" ]; then return; fi
+    login caching REMOTE_HEAD_NAME
+
+    cache_remote_name
+
+    FULL_REF=$(git symbolic-ref "refs/remotes/$REMOTE_NAME/HEAD" 2>/dev/null || true)
+
+    if [ "z$FULL_REF" == "z" ]; then
+        log could not find symbolic-ref of "$REMOTE_NAME/HEAD". calling set-head...
+
+        git remote set-head "$REMOTE_NAME" -a >/dev/null 2>/dev/null || true
+        FULL_REF=$(git symbolic-ref "refs/remotes/$REMOTE_NAME/HEAD" 2>/dev/null || true)
+    fi
+
+    if [ "z$FULL_REF" == "z" ]; then
+        log still could not find symblic-ref of "$REMOTE_NAME/HEAD". assuming "$DEFAULT_BRANCH".
+
+        FULL_REF="refs/remotes/$REMOTE_NAME/$DEFAULT_BRANCH"
+    fi
+
+    REMOTE_HEAD_NAME=${FULL_REF#refs/remotes/$REMOTE_NAME/}
+
+    logout REMOTE_HEAD_NAME="$REMOTE_HEAD_NAME"
+}
+
+cache_reviewers() {
+    if [ "z$REVIEWERS" != "z" ]; then return; fi
+
+    for ARG in "$@"; do
+        REVIEWERS="$REVIEWERS --reviewer=$ARG"
+    done
+
+    if [ "z$REVIEWERS" == "z" ]; then
+        REVIEWERS=" "
+    fi
+}
+
+changeset() {
+    cache_hostname
+
+    log curling "$HOSTNAME" to find latest patchset for changeset "$1"...
+
+    curl -f -s "https://$HOSTNAME/changes/$1/revisions/current/commit" | \
+        tail -n+2 | \
+        cut -d '"' -f 4
+ }

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# shellcheck source=gerrit-support
+source "$(dirname "$0")/gerrit-support"
+
+cache_remote_push
+cache_remote_branch
+cache_reviewers "$@"
+
+run git push \
+    --receive-pack="gerrit receive-pack $REVIEWERS" \
+    "$REMOTE_PUSH" \
+    "HEAD:refs/for/$REMOTE_BRANCH%ready"
