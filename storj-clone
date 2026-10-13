@@ -7,7 +7,7 @@ set -e
 trap 'RC=$?; if test "$RC" != 0 && test "$RC" != 66 ; then echo "Error! Step exited with exit code $RC."; exit $RC; fi' EXIT
 
 usage() {
-  echo "usage: curl -L storj.io/clone | sh [-c repository [destination]]"
+  echo "usage: curl -sSL storj.io/clone | sh [-s repository [destination]]"
   echo ""
   echo "storj-clone clones the specified repository from gerrit into the optional destination."
   echo "If no repository is specified, it looks at the current directory to see if it is a"
@@ -21,7 +21,8 @@ fi
 
 HOST="${GERRIT%%:*}"
 HOST="${HOST:-review.dev.storj.tools}"
-PORT="${GERRIT#*:}"
+PORT=
+case "${GERRIT:-}" in *:*) PORT="${GERRIT#*:}" ;; esac
 PORT="${PORT:-29418}"
 
 SUPPORT_REV="${SUPPORT_REV:-main}"
@@ -139,7 +140,7 @@ REMOTE="ssh://${USER}@${HOST}:${PORT}/storj/${REPO}"
 
     mkdir -p ".git/hooks"
     rm -f ".git/hooks/commit-msg"
-    curl -LsSo ".git/hooks/commit-msg" "https://${HOST}/tools/hooks/commit-msg"
+    curl -fLsSo ".git/hooks/commit-msg" "https://${HOST}/tools/hooks/commit-msg"
     chmod +x ".git/hooks/commit-msg"
 )
 
@@ -156,35 +157,35 @@ REMOTE="ssh://${USER}@${HOST}:${PORT}/storj/${REPO}"
     mkdir -p ".git/gerrit"
 
     rm -f ".git/gerrit/gerrit-support"
-    curl -LsSo ".git/gerrit/gerrit-support" "${SUPPORT_BASE}/gerrit-support"
+    curl -fLsSo ".git/gerrit/gerrit-support" "${SUPPORT_BASE}/gerrit-support"
 
     rm -f ".git/gerrit/push-wip"
-    curl -LsSo ".git/gerrit/push-wip" "${SUPPORT_BASE}/push-wip"
+    curl -fLsSo ".git/gerrit/push-wip" "${SUPPORT_BASE}/push-wip"
     chmod +x ".git/gerrit/push-wip"
     git config alias.push-wip "!./.git/gerrit/push-wip"
 
     rm -f ".git/gerrit/push-it"
-    curl -LsSo ".git/gerrit/push-it" "${SUPPORT_BASE}/push-it"
+    curl -fLsSo ".git/gerrit/push-it" "${SUPPORT_BASE}/push-it"
     chmod +x ".git/gerrit/push-it"
     git config alias.push-it "!./.git/gerrit/push-it"
 
     rm -f ".git/gerrit/push-review"
-    curl -LsSo ".git/gerrit/push-review" "${SUPPORT_BASE}/push-review"
+    curl -fLsSo ".git/gerrit/push-review" "${SUPPORT_BASE}/push-review"
     chmod +x ".git/gerrit/push-review"
     git config alias.push-review "!./.git/gerrit/push-review"
 
     rm -f ".git/gerrit/reset-to"
-    curl -LsSo ".git/gerrit/reset-to" "${SUPPORT_BASE}/reset-to"
+    curl -fLsSo ".git/gerrit/reset-to" "${SUPPORT_BASE}/reset-to"
     chmod +x ".git/gerrit/reset-to"
     git config alias.reset-to "!./.git/gerrit/reset-to"
 
     rm -f ".git/gerrit/pick"
-    curl -LsSo ".git/gerrit/pick" "${SUPPORT_BASE}/pick"
+    curl -fLsSo ".git/gerrit/pick" "${SUPPORT_BASE}/pick"
     chmod +x ".git/gerrit/pick"
     git config alias.pick "!./.git/gerrit/pick"
 
     rm -f ".git/gerrit/changeset"
-    curl -LsSo ".git/gerrit/changeset" "${SUPPORT_BASE}/changeset"
+    curl -fLsSo ".git/gerrit/changeset" "${SUPPORT_BASE}/changeset"
     chmod +x ".git/gerrit/changeset"
     git config alias.changeset "!./.git/gerrit/changeset"
 )

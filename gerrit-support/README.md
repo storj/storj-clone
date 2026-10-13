@@ -86,27 +86,12 @@ It is unsafe to reset --hard with a dirty status. Please commit/stash and try ag
 $ git pick 147
 ```
 
-### push-draft
+### push-wip
 
-`git push-draft` is exactly like `git push-review` except it pushes a draft. It may not work yet.
+`git push-wip` is exactly like `git push-review` except it marks the change as work in progress.
 
 ```
-$ git push-draft
-Enumerating objects: 3, done.
-Counting objects: 100% (3/3), done.
-Delta compression using up to 8 threads
-Compressing objects: 100% (2/2), done.
-Writing objects: 100% (2/2), 283 bytes | 283.00 KiB/s, done.
-Total 2 (delta 0), reused 0 (delta 0)
-remote: error: branch refs/heads/master:
-remote: You need 'Push' rights to upload code review requests.
-remote: Verify that you are pushing to the right branch.
-remote: User: zeebo
-remote: Contact an administrator to fix the permissions
-remote: Processing changes: refs: 1, done
-To ssh://review.dev.storj.tools:29418/storj/gerrit-testing
- ! [remote rejected] HEAD -> refs/drafts/master (draft workflow is disabled)
-error: failed to push some refs to 'ssh://user@review.dev.storj.tools:29418/storj/gerrit-testing'
+$ git push-wip
 ```
 
 ---
@@ -150,4 +135,4 @@ First, it tries to figure out the remote to push to. If there's a remote with `r
 
 Second, it ensures that the remote name exists. If it doesn't, it constructs a remote by looking at your username, your project configuration, and the directory name of the git repository. You can override the username by setting the `gerrit.user` or `github.user` git config (in that priority order), and the project name by setting the `gerrit.project` git config. The name of the repo is always taken from the git directory.
 
-Finally, it will push to whatever the remote tracking branch is for the current branch you're on. If there's no remote tracking branch, it uses `main`.
+Finally, it will push to whatever the remote tracking branch is for the current branch you're on. If there's no remote tracking branch, it uses the remote's default branch, falling back to `main`.

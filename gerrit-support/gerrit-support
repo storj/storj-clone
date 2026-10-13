@@ -91,7 +91,7 @@ cache_hostname() {
         log pulling hostname from RAW_PUSH="$RAW_PUSH"...
         HOSTNAME=$(echo "$RAW_PUSH" | cut -d / -f 3 | cut -d : -f 1 | cut -d @ -f 2)
     else
-        HOSTNAME=$(git config --get gerrit.hostanme || true)
+        HOSTNAME=$(git config --get gerrit.hostname || true)
         if [ "z$HOSTNAME" == "z" ]; then
             log using default hostname...
             HOSTNAME=$DEFAULT_HOSTNAME
@@ -129,7 +129,7 @@ cache_address() {
     fi
 
     if [ "z$ADDRESS" == "zreview.dev.storj.io:29418" ]; then
-        log address set to review.dev.storj.io:29148, updating to review.dev.storj.tools:29418...
+        log address set to review.dev.storj.io:29418, updating to review.dev.storj.tools:29418...
         ADDRESS=review.dev.storj.tools:29418
     fi
 
@@ -300,7 +300,11 @@ changeset() {
 
     log curling "$HOSTNAME" to find latest patchset for changeset "$1"...
 
-    curl -f -s "https://$HOSTNAME/changes/$1/revisions/current/commit" | \
-        tail -n+2 | \
-        cut -d '"' -f 4
- }
+    local BODY
+    if ! BODY=$(curl -f -s "https://$HOSTNAME/changes/$1/revisions/current/commit"); then
+        >&2 echo "Unable to find change $1 on $HOSTNAME."
+        return 1
+    fi
+
+    echo "$BODY" | tail -n+2 | cut -d '"' -f 4
+}
